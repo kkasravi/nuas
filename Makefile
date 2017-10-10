@@ -5,39 +5,49 @@ IMAGE:=$(REPO):$(VERSION)
 
 .PHONY:  build run schemas
 
-all: dockerbuild
+all: build
 
-dockerdebug:
+debug:
 	@docker exec -e GODEBUGGER=$(GODEBUGGER) --privileged -it $(shell docker ps -q --filter ancestor=$(IMAGE)) /go/src/github.com/nervanasystems/nuas/scripts/godebug attach bin/apiserver
 
-dockerbuild:
+build:
 	@echo building
 	@docker build -t $(IMAGE) .
 
-dockershell:
+dev:
 	@echo "Running image $(IMAGE) ..."
 	@docker exec --privileged -it $(shell docker ps -q --filter ancestor=$(IMAGE)) /bin/bash
 
-dockerstop:
+env-down:
 	@echo "Stopping image $(shell docker ps -q --filter ancestor=$(IMAGE))"
 	@docker stop $(shell docker ps -q --filter ancestor=$(IMAGE))
 
-dockerstart:
+env-api:
 	@echo "Starting image $(IMAGE) ..."
 	@docker run --privileged -d -p 9443:9443 -t $(IMAGE) 
 
-dockerrun: dockerstart
-	@echo "Starting apiserver in image $(IMAGE) ..."
-	@docker exec --privileged -d $(shell docker ps -q --filter ancestor=$(IMAGE)) /go/src/github.com/nervanasystems/nuas/scripts/run
+env-up:
+	@echo "Bringing up apiserver $(IMAGE) ..."
+	@docker run --privileged -d -p 9443:9443 -t $(IMAGE) /go/src/github.com/nervanasystems/nuas/scripts/run
 
-dockervalidate:
+logs:
+	@echo "Fetch logs for $(IMAGE) ..."
+	@docker logs -f $(shell docker ps -q --filter ancestor=$(IMAGE))
+
+validate:
 	@kubectl --kubeconfig=kubeconfig api-versions
 
-dockerclean:
+create-jobtype:
+	@kubectl --kubeconfig=kubeconfig create -f sample/jobtype.yaml
+
+delete-jobtype:
+	@kubectl --kubeconfig=kubeconfig delete -f sample/jobtype.yaml
+
+clean:
 	@echo "Removing image $(IMAGE) ..."
 	@docker rmi $(IMAGE)
 
-dockerscrub:
+scrub:
 	@echo "Removing <none> image ..."
 	@docker images | grep '<none>' | awk '{print $$3}' | xargs docker rmi --force
 
@@ -48,4 +58,4 @@ schemas:
 
 test:
 	@echo Running tests
-	@cd $(GOPATH)/src/github.com/nervanasystems/nuas && go test ./pkg/...
+	@docker exec --privileged -it $(shell docker ps -q --filter ancestor=$(IMAGE)) go test ./pkg/...
