@@ -8,7 +8,7 @@ IMAGE:=$(REPO):$(VERSION)
 all: dockerbuild
 
 dockerdebug:
-	@docker exec --privileged -it $(shell docker ps -q --filter ancestor=$(IMAGE)) -e GODEBUGGER=$(GODEBUGGER) /go/src/github.com/nervanasystems/nuas/scripts/godebug attach bin/apiserver
+	@docker exec -e GODEBUGGER=$(GODEBUGGER) --privileged -it $(shell docker ps -q --filter ancestor=$(IMAGE)) /go/src/github.com/nervanasystems/nuas/scripts/godebug attach bin/apiserver
 
 dockerbuild:
 	@echo building

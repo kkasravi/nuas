@@ -42,7 +42,7 @@ commands ()
     case "$1" in
       a | at | att | atta | attac | attach)
         shift 1
-        attach $@
+        attach "$@"
         exitcode=$?
         break
         ;;
