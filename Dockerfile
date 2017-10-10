@@ -36,5 +36,5 @@ RUN rm -rf etcd-v3.2.9-linux-amd64
 RUN mkdir -p /go/src/github.com/nervanasystems
 ADD . /go/src/github.com/nervanasystems/nuas
 WORKDIR /go/src/github.com/nervanasystems/nuas
-RUN scripts/create
+RUN scripts/regen
 CMD /bin/bash
