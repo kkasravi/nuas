@@ -1,0 +1,24 @@
+apiVersion: helium.aipg.intel.com/v1
+kind: Jobtype
+metadata:
+  name: jobtype-example4
+  labels:
+    app: streaming
+spec:
+  state: 1 
+  template:
+    volumes: 
+    - name: work-dir
+      emptyDir: {}
+    containers:
+    - name: jobmanager
+      image: jobmanager/jobmanager:latest
+    restartPolicy: Never
+  service:
+    ports:
+    - port: 80
+      targetPort: 80
+      name: http
+    selector:
+      app: streaming
+    sessionAffinity: None

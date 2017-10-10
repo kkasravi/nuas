@@ -1,0 +1,14 @@
+#!/bin/bash
+export CGO_CPPFLAGS="-N -l"
+apiserver-boot init repo --domain aipg.intel.com
+apiserver-boot create group version resource --group helium --version v1 --kind Jobtype
+apiserver-boot create subresource --subresource batch --group helium --version v1 --kind Jobtype
+apiserver-boot create subresource --subresource interact --group helium --version v1 --kind Jobtype
+apiserver-boot create subresource --subresource training --group helium --version v1 --kind Jobtype
+apiserver-boot create subresource --subresource streaming --group helium --version v1 --kind Jobtype
+apiserver-boot build generated
+#apiserver-boot build executables --generate=false
+echo go build -o bin/apiserver -gcflags "-N -l" cmd/apiserver/main.go
+go build -o bin/apiserver -gcflags "-N -l" cmd/apiserver/main.go
+echo go build -o bin/controller-manager -gcflags "-N -l" cmd/controller-manager/main.go
+go build -o bin/controller-manager -gcflags "-N -l" cmd/controller-manager/main.go
