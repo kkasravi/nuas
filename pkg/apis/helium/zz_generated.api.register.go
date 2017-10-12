@@ -21,8 +21,6 @@ package helium
 import (
 	"fmt"
 	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
-	corev1 "k8s.io/api/core/v1"
-	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/apis/meta/internalversion"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -105,15 +103,9 @@ type Training struct {
 }
 
 type JobtypeStatus struct {
-	State int
 }
 
 type JobtypeSpec struct {
-	Template    *corev1.PodSpec
-	IngressSpec extensionsv1beta1.IngressSpec
-	ServiceSpec corev1.ServiceSpec
-	ScaleSpec   extensionsv1beta1.ScaleSpec
-	ConfigSpec  ConfigSpec
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -123,48 +115,11 @@ type Streaming struct {
 	metav1.ObjectMeta
 }
 
-type ConfigSpec struct {
-	NeonRepoSpec    NeonRepoSpec
-	SecuritySpec    SecuritySpec
-	StreamDataSpec  StreamDataSpec
-	KryptonRepoSpec KryptonRepoSpec
-}
-
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 type Interact struct {
 	metav1.TypeMeta
 	metav1.ObjectMeta
-}
-
-type KryptonRepoSpec struct {
-	RepoURL             string
-	Commit              string
-	KryptonImage        string
-	KryptonSidecarImage string
-}
-
-type StreamDataSpec struct {
-	ModelPRM         string
-	ModelPath        string
-	DatasetPath      string
-	ExtraFilename    string
-	CustomCodeURL    string
-	CustomCommit     string
-	AWSPath          string
-	AWSDefaultRegion string
-	StreamID         int
-	StreamName       string
-}
-
-type SecuritySpec struct {
-	PresignedToken string
-	JWTToken       string
-}
-
-type NeonRepoSpec struct {
-	RepoUrl string
-	Commit  string
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

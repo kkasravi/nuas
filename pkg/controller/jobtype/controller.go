@@ -45,8 +45,10 @@ package jobtype
 import (
 	"log"
 
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/builders"
+	"github.com/kubernetes-incubator/apiserver-builder/pkg/controller"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/cache"
+	"k8s.io/client-go/util/workqueue"
 
 	"github.com/nervanasystems/nuas/pkg/apis/helium/v1"
 	"github.com/nervanasystems/nuas/pkg/controller/sharedinformers"
@@ -55,7 +57,8 @@ import (
 
 // +controller:group=helium,version=v1,kind=Jobtype,resource=jobtypes
 type JobtypeControllerImpl struct {
-	builders.DefaultControllerFns
+	// informer listens for events about Jobtype
+	informer cache.SharedIndexInformer
 
 	// lister indexes properties about Jobtype
 	lister listers.JobtypeLister
@@ -69,10 +72,15 @@ type JobtypeControllerImpl struct {
 func (c *JobtypeControllerImpl) Init(
 	config *rest.Config,
 	si *sharedinformers.SharedInformers,
-    reconcileKey func(key string) error) {
+	queue workqueue.RateLimitingInterface) {
 
 	// Set the informer and lister for subscribing to events and indexing jobtypes labels
-	c.lister = si.Factory.Helium().V1().Jobtypes().Lister()
+	i := si.Factory.Helium().V1().Jobtypes()
+	c.informer = i.Informer()
+	c.lister = i.Lister()
+
+	// Add an event handler to enqueue a message for jobtypes adds / updates
+	c.informer.AddEventHandler(&controller.QueueingEventHandler{queue})
 }
 
 // Reconcile handles enqueued messages

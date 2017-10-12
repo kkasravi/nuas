@@ -39,38 +39,24 @@ type JobtypeController struct {
 
 	BeforeReconcile func(key string)
 	AfterReconcile  func(key string, err error)
-
-	Informers *sharedinformers.SharedInformers
 }
 
 // NewController returns a new JobtypeController for responding to Jobtype events
 func NewJobtypeController(config *rest.Config, si *sharedinformers.SharedInformers) *JobtypeController {
 	q := workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "Jobtype")
 
-	queue := &controller.QueueWorker{q, 10, "Jobtype", nil}
-	c := &JobtypeController{queue, nil, "Jobtype", nil, nil, si}
-
 	// For non-generated code to add events
 	uc := &JobtypeControllerImpl{}
-	uc.Init(config, si, c.LookupAndReconcile)
-	c.controller = uc
+	uc.Init(config, si, q)
 
+	queue := &controller.QueueWorker{q, 10, "Jobtype", nil}
+	c := &JobtypeController{queue, uc, "Jobtype", nil, nil}
 	queue.Reconcile = c.reconcile
-	if c.Informers.WorkerQueues == nil {
-		c.Informers.WorkerQueues = map[string]*controller.QueueWorker{}
-	}
-	c.Informers.WorkerQueues["Jobtype"] = queue
-	si.Factory.Helium().V1().Jobtypes().Informer().
-		AddEventHandler(&controller.QueueingEventHandler{q, nil, false})
 	return c
 }
 
 func (c *JobtypeController) GetName() string {
 	return c.Name
-}
-
-func (c *JobtypeController) LookupAndReconcile(key string) (err error) {
-	return c.reconcile(key)
 }
 
 func (c *JobtypeController) reconcile(key string) (err error) {
@@ -108,8 +94,5 @@ func (c *JobtypeController) reconcile(key string) (err error) {
 }
 
 func (c *JobtypeController) Run(stopCh <-chan struct{}) {
-	for _, q := range c.Informers.WorkerQueues {
-		q.Run(stopCh)
-	}
-	controller.GetDefaults(c.controller).Run(stopCh)
+	c.queue.Run(stopCh)
 }

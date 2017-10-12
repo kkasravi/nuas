@@ -19,7 +19,6 @@ limitations under the License.
 package sharedinformers
 
 import (
-	"github.com/kubernetes-incubator/apiserver-builder/pkg/controller"
 	"github.com/nervanasystems/nuas/pkg/client/clientset_generated/clientset"
 	"github.com/nervanasystems/nuas/pkg/client/informers_generated/externalversions"
 	"k8s.io/client-go/rest"
@@ -29,22 +28,14 @@ import (
 // SharedInformers wraps all informers used by controllers so that
 // they are shared across controller implementations
 type SharedInformers struct {
-	controller.SharedInformersDefaults
 	Factory externalversions.SharedInformerFactory
 }
 
 // newSharedInformers returns a set of started informers
 func NewSharedInformers(config *rest.Config, shutdown <-chan struct{}) *SharedInformers {
-	si := &SharedInformers{
-		controller.SharedInformersDefaults{},
-		externalversions.NewSharedInformerFactory(clientset.NewForConfigOrDie(config), 10*time.Minute),
-	}
-	if si.SetupKubernetesTypes() {
-		si.InitKubernetesInformers(config)
-	}
-	si.Init()
+	cs := clientset.NewForConfigOrDie(config)
+	si := &SharedInformers{externalversions.NewSharedInformerFactory(cs, 10*time.Minute)}
 	si.startInformers(shutdown)
-	si.StartAdditionalInformers(shutdown)
 	return si
 }
 

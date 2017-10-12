@@ -1,5 +1,4 @@
 #!/bin/bash
-export CGO_CPPFLAGS="-N -l"
 apiserver-boot init repo --domain aipg.intel.com
 apiserver-boot create group version resource --group helium --version v1 --kind Jobtype
 apiserver-boot create subresource --subresource batch --group helium --version v1 --kind Jobtype

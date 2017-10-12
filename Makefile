@@ -1,6 +1,6 @@
 PROJECT:=nuas
 REPO:=kkasravi/$(PROJECT)
-VERSION=v0.1.0
+VERSION=latest
 IMAGE:=$(REPO):$(VERSION)
 
 .PHONY:  build run schemas
@@ -8,37 +8,38 @@ IMAGE:=$(REPO):$(VERSION)
 all: build
 
 debug:
-	@docker exec -e GODEBUGGER=$(GODEBUGGER) --privileged -it $(shell docker ps -q --filter ancestor=$(IMAGE)) /go/src/github.com/nervanasystems/nuas/scripts/godebug attach bin/apiserver
+	@docker-compose exec --privileged nuas env GODEBUGGER=$(GODEBUGGER) /go/src/github.com/nervanasystems/nuas/scripts/godebug attach bin/apiserver
 
 build:
 	@echo building
 	@docker build -t $(IMAGE) .
 
 dev:
-	@echo "Running image $(IMAGE) ..."
-	@docker exec --privileged -it $(shell docker ps -q --filter ancestor=$(IMAGE)) /bin/bash
+	@echo "create shell in $(IMAGE) ..."
+	@docker-compose exec --privileged nuas /bin/bash
 
 env-down:
-	@echo "Stopping image $(shell docker ps -q --filter ancestor=$(IMAGE))"
-	@docker stop $(shell docker ps -q --filter ancestor=$(IMAGE))
+	@echo "Stopping nuas"
+	@docker-compose down
 
 env-api:
 	@echo "Starting image $(IMAGE) ..."
-	@docker run --privileged -d -p 9443:9443 -t $(IMAGE) 
+	@docker-compose run nuas /bin/bash
 
 env-up:
 	@echo "Bringing up apiserver $(IMAGE) ..."
-	@docker run --privileged -d -p 9443:9443 -t $(IMAGE) /go/src/github.com/nervanasystems/nuas/scripts/run
+	@docker-compose up -d
+	@docker-compose ps
 
 logs:
 	@echo "Fetch logs for $(IMAGE) ..."
-	@docker logs -f $(shell docker ps -q --filter ancestor=$(IMAGE))
+	@docker-compose logs nuas
 
 validate:
 	@kubectl --kubeconfig=kubeconfig api-versions
 
 create-jobtype:
-	@kubectl --kubeconfig=kubeconfig create -f sample/jobtype.yaml
+	@docker-compose exec nuas kubectl --kubeconfig=kubeconfig create -f sample/jobtype.yaml
 
 delete-jobtype:
 	@kubectl --kubeconfig=kubeconfig delete -f sample/jobtype.yaml
@@ -58,4 +59,4 @@ schemas:
 
 test:
 	@echo Running tests
-	@docker exec --privileged -it $(shell docker ps -q --filter ancestor=$(IMAGE)) go test ./pkg/...
+	@docker-compose exec nuas go test ./pkg/...

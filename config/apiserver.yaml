@@ -1,0 +1,93 @@
+
+apiVersion: apiregistration.k8s.io/v1beta1
+kind: APIService
+metadata:
+  name: v1.helium.aipg.intel.com
+  labels:
+    api: jobtype
+    apiserver: "true"
+spec:
+  version: v1
+  group: helium.aipg.intel.com
+  groupPriorityMinimum: 2000
+  priority: 200
+  service:
+    name: jobtype
+    namespace: kamtrace
+  versionPriority: 10
+  caBundle: "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN6RENDQWJRQ0NRQ25wOFFkUi9CUDBUQU5CZ2txaGtpRzl3MEJBUXNGQURBb01TWXdKQVlEVlFRRERCMXEKYjJKMGVYQmxMV05sY25ScFptbGpZWFJsTFdGMWRHaHZjbWwwZVRBZUZ3MHhOekV3TVRFeU1EUXpNamRhRncweApPREV3TVRFeU1EUXpNamRhTUNneEpqQWtCZ05WQkFNTUhXcHZZblI1Y0dVdFkyVnlkR2xtYVdOaGRHVXRZWFYwCmFHOXlhWFI1TUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUE1SDRKbHQ5WlhLWTAKL1NWNVRVb2NNR3o3T2MrWUlHVm53ZUwxNXRQQThsMHJhbk14aFJXR3VKakEzaEFsblcwSWxpU01RM3U4R3pNLwpDMGU2RnhhdGhrc1dsZkFBSDg1ZWc3VjFuN0J4TUNXQlZRU1NtQ0JJYTA5RDU4TENPNVpCWndWMkVRaXJxOFBICjZteFF1YzZYYitHTlNEamJZMzVxRDAwU1lYTE5hQjZhUS9FdCtIL1BzalBYbGdJbW45U2wyU0xpa1N3a00zUlcKckpXdFIzSkxZUjB2YnphQzhQNTVubFU2VGgwMzZ0TDJHbzIrWGRrbEovaGFpc2FxT3Bra3dYQVRmZlh1bDdtbApzUzZhMGlxY1hqd0xURkdyRm44cWJoTjA0cG9zd3ZUMlMrRGVwUy9sUW1lUWR1T29aZnpHeUJqUDhxUURpQVh1Ckk1K3BtNVI2NndJREFRQUJNQTBHQ1NxR1NJYjNEUUVCQ3dVQUE0SUJBUUJKM1ZkUGkyRzd5c1gzMFc2QUkxakMKVEFxUi9XRmM0d1h4VWFjbU1yd1l3UkllVGhaaTJORzBrYnZDbXdnUEYwdCtCcFdDQUUwRW5NYkJVWlRJckNKOQpkUnNxVHhsR0grU0VPYTI1MU5UNm9GY3ZBSWFTZmk3VFZZcVJVbTdsZEl1eUs0OGdUZlFYRmoyS0ppUmlDOWdlClljZm0xd01hNis3WTJzVEpPR0hXQXNDVlc4RGtuVmFoTHhwUHpWQXRySGZqYXVlOWM0RnZzTG0rODRFam1nbEYKRjM3S2J1VzBzWkc4Zkg1VnlvbmU3SXB1d1c3TEdCYzRKRlZHTlp0ZDhVU2dtVnQ4Sno4Nm4zcHR5SDE2T0tQOAp3T1p6T011U0RrWk1lQXVFN0h2NVFzVk1aZEU0WFhvOElvTTR4d1V5eGdNRFRZS2krOXBDK1l4cldwaXV5OEgrCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jobtype
+  namespace: kamtrace
+  labels:
+    api: jobtype
+    apiserver: "true"
+spec:
+  ports:
+  - port: 443
+    protocol: TCP
+    targetPort: 443
+  selector:
+    api: jobtype
+    apiserver: "true"
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: jobtype
+  namespace: kamtrace
+  labels:
+    api: jobtype
+    apiserver: "true"
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        api: jobtype
+        apiserver: "true"
+    spec:
+      containers:
+      - name: apiserver
+        image: kkasravi/jobtype:latest
+        volumeMounts:
+        - name: apiserver-certs
+          mountPath: /apiserver.local.config/certificates
+          readOnly: true
+        command:
+        - "./apiserver"
+        args:
+        - "--etcd-servers=http://localhost:2379"
+        - "--tls-cert-file=/apiserver.local.config/certificates/tls.crt"
+        - "--tls-private-key-file=/apiserver.local.config/certificates/tls.key"
+        - "--audit-log-path=-"
+        - "--audit-log-maxage=0"
+        - "--audit-log-maxbackup=0"
+      - name: controller
+        image: kkasravi/jobtype:latest
+        command:
+        - "./controller-manager"
+        args:
+      - name: etcd
+        image: quay.io/coreos/etcd:v3.0.17
+      volumes:
+      - name: apiserver-certs
+        secret:
+          secretName: jobtype
+---
+apiVersion: v1
+kind: Secret
+type: kubernetes.io/tls
+metadata:
+  name: jobtype
+  namespace: kamtrace
+  labels:
+    api: jobtype
+    apiserver: "true"
+data:
+  tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN3ekNDQWFzQ0NRRDhsdzNndHNFZldEQU5CZ2txaGtpRzl3MEJBUVVGQURBb01TWXdKQVlEVlFRRERCMXEKYjJKMGVYQmxMV05sY25ScFptbGpZWFJsTFdGMWRHaHZjbWwwZVRBZUZ3MHhOekV3TVRFeU1EUXpNamRhRncweApPREV3TVRFeU1EUXpNamRhTUI4eEhUQWJCZ05WQkFNTUZHcHZZblI1Y0dVdWEyRnRkSEpoWTJVdWMzWmpNSUlCCklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUErYW9FN0FKMHZuTUV0cytBOXQ0aFI5azgKUC9EZkkwYVBEVzBBNnY0eW0xUCtMM2FTQk9pb2wxYjRYNEg1NDNRVjJ3M01DQk5NTUxHQkYwV3JxUG1CSG0xOApieGhJZmloczYzc0ZWSlh6NlZlLy9KNE9mSC9xeW5nd01lWmNhWnlEYnJyenhoeFdEM0NGUm9KWDE3eXQ5WHBuClRVZ2phTThPRFlpdVFJdWZnQjB0dVE1SnY2UGF4ek9JL0Iwd2YzQ1hTR1dTMFFGZWdXU1g2NytPZ2dRYU14UFgKRmp4QjNnUlJjSGJZTC9KeTJQK2Z5TEM4cENKbG1Bdm5tQjQ1OXJZZG1qaWhxcXpkTW05MzE0bUZwUE5lMklMTQpXaXB4ZDh3YW9GdHlTYlVNQzdpeU1VM3BIM0JhRDFVL3hhazNNaERqZEZPTDZFTTZsWUN6LzMwS2hGRHdVd0lECkFRQUJNQTBHQ1NxR1NJYjNEUUVCQlFVQUE0SUJBUUFibTg0Ny9XelQyRmd2Ujl6WkRYQUNHWFlDRzVvdlFTc3EKcmJNYkpBQkZZTnFkRi9EVnFGZnZabVcvbjkzNXRWK010YUFaYStTRHVOZXhCdmpxRGZyTnFMam9mMk9zR0Rtdwp5M1hTRVNYK3ZJVXo1UjRWR1p2L1ZTNWYzRWVGajNpTHIrQ285Wm84Z1FOeEJ5ZzhjMUJRUnZSY29Yc1FMMkphCk1LK1hEYUV3VGhETzF4VWZ3Y2ZvYjdyc0ZhMjR4aGpyWHFZYVhseC95MzRHdHZ6NkR6aVowTkZJMzZUVVpQbHIKY3JwRnI0Y2ZxMnVZTDVFZzFKdnVlOGY2Um9sWW00SktuK2RFZ0tZN0FjYlJYQzhTaG9hclZta1NxTHRyZ0N0dgo1bC9xbnhtWlA4UGorbVVsWlJzQTRRcG96b21qcEQwaFJVbzRsZUhoZGoyclVYSlZPNUU3Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+  tls.key: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2d0lCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktrd2dnU2xBZ0VBQW9JQkFRRDVxZ1RzQW5TK2N3UzIKejREMjNpRkgyVHcvOE44alJvOE5iUURxL2pLYlUvNHZkcElFNktpWFZ2aGZnZm5qZEJYYkRjd0lFMHd3c1lFWApSYXVvK1lFZWJYeHZHRWgrS0d6cmV3VlVsZlBwVjcvOG5nNThmK3JLZURBeDVseHBuSU51dXZQR0hGWVBjSVZHCmdsZlh2SzMxZW1kTlNDTm96dzROaUs1QWk1K0FIUzI1RGttL285ckhNNGo4SFRCL2NKZElaWkxSQVY2QlpKZnIKdjQ2Q0JCb3pFOWNXUEVIZUJGRndkdGd2OG5MWS81L0lzTHlrSW1XWUMrZVlIam4ydGgyYU9LR3FyTjB5YjNmWAppWVdrODE3WWdzeGFLbkYzekJxZ1czSkp0UXdMdUxJeFRla2ZjRm9QVlQvRnFUY3lFT04wVTR2b1F6cVZnTFAvCmZRcUVVUEJUQWdNQkFBRUNnZ0VCQUpQY3kvbHpJdTFBZFlSSHROdUFoemxrUVRpbFVhSTB3Ymh6M0YxUW0ydysKL0lYanRXdE8xN3A1K2JPbTZQWjY1QTdPUnc1cFQzQnZVRU1XTWlwclNydFlvSit6UkF2anFVNTFsNXlYQ3RRaAo4a1NNMzR1QXZ1K1c2d1JDcUd5c0UzTmJLZEVsS3hzTnl3RU5aVFVTTy96c3Q0MmZzY2o3Q0JtZjM0TytyWUpUCm1qREJ0bUtGbys0Q0h1aGJmUzhHY202c0NnYXY1OUVBcDBtNnlpS3IvVThUa1pLenhyVCtTaEEyMThkSklUZSsKN1p3K2pBbW9xS0FtVXNzK3g5V2F4aXRydVlKVUtEVlptc1BRWkFrbThBalVsNzRWN3RSZzRkWWtydXgzMUJBWApvMWRNM1NiVi9LUGdIVGJXRTdFdWdwTGs1RUN1ZHFGeEZoRzZIcEZlTDhFQ2dZRUEvZHpHMlNaMnV2UVo4eDZQCmowZ0hoS3M2bVkybHhrTldoakNRL1NXcU5nUnE5TVpUeUQ2eko2d0g4dEJZOVpPUDlQNTFqWFEwWXZMSHE3dU8KaUs5c0d1S3NycWRpSmJ6dnNJWkRUM3NWemcyNHI5VmFEd2JmaGVjcTR0ZjB6ZGxqeXVvTzM0ZElmY0JsQjlqZQpvc2FiWFA3MnF2YU5acEdOdjZRV21INmkwQkVDZ1lFQSs4UXhWbEh4cnFKSzMrUU55Tk56V2llNWFDRXhlTjR4Cko5MEVRR2tSQ1hRTmFNUjB0cmZ3TTVRRURFbFFVLzJPalVLeEFXbW1ReERPdFR4aVpuZ1htOTFUcExrbGxJRjYKVjlSNmlxNlo3VW92WnZjSnU4VHd0VmFZaWZNQmVETE8razZRNHFmNlA4aVJsQVRpQ3hRb3NFYzVTM0JhZS9jaApENG5mQ1dGa25pTUNnWUVBb3czaE1xeS82Z2pMZWhxUS91aTIyNEhYbTdVZFd5RDVQQ3VKbE85U1NtdS8vd1E3CjRBeFZxZytXODJEYklyRHE3K05Zd2NoM3RXNVd6WGtrYmFxdTl2M05DRWsrZ3hxOW9WWTdlWnVIUDlnVVhldmQKY25WcHNHbndZODl0ejZIbnRQZHRJaW1VYUNEaFE0OEtRT2JyOTJsVUtpOCtWemo2SUxOV1NCQmVwdUVDZ1lBQwpGdjdSMkp4STlzL29TOXhSYm0vbXI2MjZUNHc1bEo2VDFpSFM1d3hkSjdsMHhTeXkxNVFHMlpPdkJtekVSYmFKCk5hU0NmbjRDMElEbXdEbVE0QzVSL09SVTJiU1dKdno4L2FhR3dDeEc2L2E0eEJRd210SGtyM05Vc2MreFQ3cW8KR1Q3YW9zcFEvVGs0SVZJL0JVdlJLc1l1K2gvR0o2YittZ1pmN1k4SVFRS0JnUUNHcDFLODdyNUNNT2RFUE5PTQpYRlo4SktRK0s2ZU4zOW1nT0xOZGFnVWlEQnpOcTliNVJwSG1KT2lhVngrVlZUK3U0aStMRzltUWVLM3NkZVdFCmE2dlo4TnJ6dG01SDhNK1ZUWCs3Qkt5RVFzMmhZZnVRd3pXZUp4eENOc0JuVnRKYm4zRFdlUll1dDdyVkFvS2YKd3FRd3F6a204NGdtaUxuTk1tYllXaUZBcWc9PQotLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tCg==
+---

@@ -1,6 +1,5 @@
 #!/bin/bash
-export CGO_CPPFLAGS="-N -l"
-apiserver-boot build generated
+#apiserver-boot build generated
 #apiserver-boot build executables --generate=false
 go build -o bin/apiserver -gcflags "-N -l" cmd/apiserver/main.go
 go build -o bin/controller-manager -gcflags "-N -l" cmd/controller-manager/main.go

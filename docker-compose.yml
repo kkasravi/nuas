@@ -1,0 +1,8 @@
+version: '2'
+services:
+  nuas:
+    image: "kkasravi/nuas:latest"
+    command: "/go/src/github.com/nervanasystems/nuas/scripts/run"
+    ports:
+      - 9443:9443
+    privileged: true # required for debugging
