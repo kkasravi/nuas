@@ -141,6 +141,36 @@ func GetOpenAPIDefinitions(ref openapi.ReferenceCallback) map[string]openapi.Ope
 			Dependencies: []string{
 				"github.com/nervanasystems/nuas/pkg/apis/helium/v1.Batch", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
 		},
+		"github.com/nervanasystems/nuas/pkg/apis/helium/v1.ConfigSpec": {
+			Schema: spec.Schema{
+				SchemaProps: spec.SchemaProps{
+					Properties: map[string]spec.Schema{
+						"neonrepo": {
+							SchemaProps: spec.SchemaProps{
+								Ref: ref("github.com/nervanasystems/nuas/pkg/apis/helium/v1.NeonRepoSpec"),
+							},
+						},
+						"security": {
+							SchemaProps: spec.SchemaProps{
+								Ref: ref("github.com/nervanasystems/nuas/pkg/apis/helium/v1.SecuritySpec"),
+							},
+						},
+						"streamdata": {
+							SchemaProps: spec.SchemaProps{
+								Ref: ref("github.com/nervanasystems/nuas/pkg/apis/helium/v1.StreamDataSpec"),
+							},
+						},
+						"kryptonrepo": {
+							SchemaProps: spec.SchemaProps{
+								Ref: ref("github.com/nervanasystems/nuas/pkg/apis/helium/v1.KryptonRepoSpec"),
+							},
+						},
+					},
+				},
+			},
+			Dependencies: []string{
+				"github.com/nervanasystems/nuas/pkg/apis/helium/v1.KryptonRepoSpec", "github.com/nervanasystems/nuas/pkg/apis/helium/v1.NeonRepoSpec", "github.com/nervanasystems/nuas/pkg/apis/helium/v1.SecuritySpec", "github.com/nervanasystems/nuas/pkg/apis/helium/v1.StreamDataSpec"},
+		},
 		"github.com/nervanasystems/nuas/pkg/apis/helium/v1.Interact": {
 			Schema: spec.Schema{
 				SchemaProps: spec.SchemaProps{
@@ -331,16 +361,50 @@ func GetOpenAPIDefinitions(ref openapi.ReferenceCallback) map[string]openapi.Ope
 			Schema: spec.Schema{
 				SchemaProps: spec.SchemaProps{
 					Description: "JobtypeSpec defines the desired state of Jobtype",
-					Properties:  map[string]spec.Schema{},
+					Properties: map[string]spec.Schema{
+						"template": {
+							SchemaProps: spec.SchemaProps{
+								Ref: ref("k8s.io/api/core/v1.PodSpec"),
+							},
+						},
+						"ingress": {
+							SchemaProps: spec.SchemaProps{
+								Ref: ref("k8s.io/api/extensions/v1beta1.IngressSpec"),
+							},
+						},
+						"service": {
+							SchemaProps: spec.SchemaProps{
+								Ref: ref("k8s.io/api/core/v1.ServiceSpec"),
+							},
+						},
+						"scale": {
+							SchemaProps: spec.SchemaProps{
+								Ref: ref("k8s.io/api/extensions/v1beta1.ScaleSpec"),
+							},
+						},
+						"config": {
+							SchemaProps: spec.SchemaProps{
+								Ref: ref("github.com/nervanasystems/nuas/pkg/apis/helium/v1.ConfigSpec"),
+							},
+						},
+					},
 				},
 			},
-			Dependencies: []string{},
+			Dependencies: []string{
+				"github.com/nervanasystems/nuas/pkg/apis/helium/v1.ConfigSpec", "k8s.io/api/core/v1.PodSpec", "k8s.io/api/core/v1.ServiceSpec", "k8s.io/api/extensions/v1beta1.IngressSpec", "k8s.io/api/extensions/v1beta1.ScaleSpec"},
 		},
 		"github.com/nervanasystems/nuas/pkg/apis/helium/v1.JobtypeStatus": {
 			Schema: spec.Schema{
 				SchemaProps: spec.SchemaProps{
-					Description: "JobtypeStatus defines the observed state of Jobtype",
-					Properties:  map[string]spec.Schema{},
+					Description: "JobtypeStatus defines the observed state of JobType",
+					Properties: map[string]spec.Schema{
+						"state": {
+							SchemaProps: spec.SchemaProps{
+								Type:   []string{"integer"},
+								Format: "int32",
+							},
+						},
+					},
 				},
 			},
 			Dependencies: []string{},
@@ -376,6 +440,154 @@ func GetOpenAPIDefinitions(ref openapi.ReferenceCallback) map[string]openapi.Ope
 			},
 			Dependencies: []string{
 				"github.com/kubernetes-incubator/apiserver-builder/pkg/builders.DefaultStorageStrategy"},
+		},
+		"github.com/nervanasystems/nuas/pkg/apis/helium/v1.KryptonRepoSpec": {
+			Schema: spec.Schema{
+				SchemaProps: spec.SchemaProps{
+					Properties: map[string]spec.Schema{
+						"RepoURL": {
+							SchemaProps: spec.SchemaProps{
+								Type:   []string{"string"},
+								Format: "",
+							},
+						},
+						"Commit": {
+							SchemaProps: spec.SchemaProps{
+								Type:   []string{"string"},
+								Format: "",
+							},
+						},
+						"kryptonImage": {
+							SchemaProps: spec.SchemaProps{
+								Type:   []string{"string"},
+								Format: "",
+							},
+						},
+						"kryptonSidecarImage": {
+							SchemaProps: spec.SchemaProps{
+								Type:   []string{"string"},
+								Format: "",
+							},
+						},
+					},
+					Required: []string{"RepoURL", "Commit", "kryptonImage", "kryptonSidecarImage"},
+				},
+			},
+			Dependencies: []string{},
+		},
+		"github.com/nervanasystems/nuas/pkg/apis/helium/v1.NeonRepoSpec": {
+			Schema: spec.Schema{
+				SchemaProps: spec.SchemaProps{
+					Properties: map[string]spec.Schema{
+						"RepoUrl": {
+							SchemaProps: spec.SchemaProps{
+								Type:   []string{"string"},
+								Format: "",
+							},
+						},
+						"Commit": {
+							SchemaProps: spec.SchemaProps{
+								Type:   []string{"string"},
+								Format: "",
+							},
+						},
+					},
+					Required: []string{"RepoUrl", "Commit"},
+				},
+			},
+			Dependencies: []string{},
+		},
+		"github.com/nervanasystems/nuas/pkg/apis/helium/v1.SecuritySpec": {
+			Schema: spec.Schema{
+				SchemaProps: spec.SchemaProps{
+					Properties: map[string]spec.Schema{
+						"presignedToken": {
+							SchemaProps: spec.SchemaProps{
+								Type:   []string{"string"},
+								Format: "",
+							},
+						},
+						"jwtToken": {
+							SchemaProps: spec.SchemaProps{
+								Type:   []string{"string"},
+								Format: "",
+							},
+						},
+					},
+					Required: []string{"presignedToken", "jwtToken"},
+				},
+			},
+			Dependencies: []string{},
+		},
+		"github.com/nervanasystems/nuas/pkg/apis/helium/v1.StreamDataSpec": {
+			Schema: spec.Schema{
+				SchemaProps: spec.SchemaProps{
+					Properties: map[string]spec.Schema{
+						"modelPRM": {
+							SchemaProps: spec.SchemaProps{
+								Type:   []string{"string"},
+								Format: "",
+							},
+						},
+						"modelPath": {
+							SchemaProps: spec.SchemaProps{
+								Type:   []string{"string"},
+								Format: "",
+							},
+						},
+						"datasetPath": {
+							SchemaProps: spec.SchemaProps{
+								Type:   []string{"string"},
+								Format: "",
+							},
+						},
+						"extraFilename": {
+							SchemaProps: spec.SchemaProps{
+								Type:   []string{"string"},
+								Format: "",
+							},
+						},
+						"customCodeURL": {
+							SchemaProps: spec.SchemaProps{
+								Type:   []string{"string"},
+								Format: "",
+							},
+						},
+						"customCommit": {
+							SchemaProps: spec.SchemaProps{
+								Type:   []string{"string"},
+								Format: "",
+							},
+						},
+						"awsPath": {
+							SchemaProps: spec.SchemaProps{
+								Type:   []string{"string"},
+								Format: "",
+							},
+						},
+						"aWSDefaultRegion": {
+							SchemaProps: spec.SchemaProps{
+								Type:   []string{"string"},
+								Format: "",
+							},
+						},
+						"streamID": {
+							SchemaProps: spec.SchemaProps{
+								Type:   []string{"integer"},
+								Format: "int32",
+							},
+						},
+						"streamName": {
+							SchemaProps: spec.SchemaProps{
+								Type:   []string{"string"},
+								Format: "",
+							},
+						},
+					},
+					Required: []string{"modelPRM", "modelPath", "datasetPath", "extraFilename", "customCodeURL", "customCommit", "awsPath", "aWSDefaultRegion", "streamID", "streamName"},
+				},
+			},
+			Dependencies: []string{},
 		},
 		"github.com/nervanasystems/nuas/pkg/apis/helium/v1.Streaming": {
 			Schema: spec.Schema{
